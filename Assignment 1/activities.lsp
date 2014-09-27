@@ -1,0 +1,17 @@
+(defun sumList (L &rest R)
+	(cond ((null L) 0)
+		(T (+ (car L) (sumList(cdr L))))
+	)
+) 
+
+(defun sumSquares (L &rest R)
+	(cond ((null L) 0)
+		(T (+ (* (car L) (car L)) (sumSquares(cdr L))))
+	)
+)
+
+(defun everyOther (L)
+	(cond( (null L) L)
+		(T (print L) (cons (car L)  (everyOther(cddr L))))
+	)
+)

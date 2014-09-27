@@ -1,0 +1,212 @@
+;; By Stephen Chavez
+;; PPL - 09/16/2014
+
+(setq tasks '((purchase_lot 2) (design_house 5) (get_permit 1 purchase_lot design_house) 
+			  (get_bids 14 purchase_lot design_house) (select_subs 2 get_bids)
+			  (excavate 1 get_permit select_subs) (construct_basement 7 excavate) 
+			  (order_windows_doors 3 purchase_lot design_house) 
+			  (get_windows_doors 10 order_windows_doors) (frame 12 get_permit select_subs) 
+			  (rough_plumbing 5 frame) (rough_electric 3 frame) (roof 4 frame) 
+			  (install_windows_doors 7 get_windows_doors rough_plumbing rough_electric)
+			  (vapor_barrier_insulation 2 roof install_windows_doors) 
+			  (drywall 5 vapor_barrier_insulation) (inside_paint 3 drywall) 
+			  (cupboards 3 inside_paint) (carpet_floor 5 inside_paint)
+			  (lights 2 inside_paint) (plumbing_heating 6 inside_paint)
+			  (siding 2 roof install_windows_doors) (outside_paint 3 siding)
+			  (move_house 1 cupboards carpet_floor lights plumbing_heating outside_paint)
+			  (connections 2 construct_basement move_house) 
+			  (landscape 4 construct_basement move_house)))
+
+;; Added extra stuff
+(setq tasks2 '((purchase_lot 2) (design_house 5) (get_permit 1 purchase_lot design_house) 
+			  (get_bids 14 purchase_lot design_house) (select_subs 2 get_bids)
+			  (excavate 1 get_permit select_subs) (construct_basement 7 excavate) 
+			  (order_windows_doors 3 purchase_lot design_house) 
+			  (get_windows_doors 10 order_windows_doors) (frame 12 get_permit select_subs) 
+			  (rough_plumbing 5 frame) (rough_electric 3 frame) (roof 4 frame) 
+			  (install_windows_doors 7 get_windows_doors rough_plumbing rough_electric)
+			  (vapor_barrier_insulation 2 roof install_windows_doors) 
+			  (drywall 5 vapor_barrier_insulation) (inside_paint 3 drywall) 
+			  (cupboards 3 inside_paint) (carpet_floor 5 inside_paint)
+			  (lights 2 inside_paint) (plumbing_heating 6 inside_paint)
+			  (siding 2 roof install_windows_doors) (outside_paint 3 siding)
+			  (move_house 1 cupboards carpet_floor lights plumbing_heating outside_paint)
+			  (connections 2 construct_basement move_house) 
+			  (landscape 4 construct_basement move_house) (stephen_moves_in 4 move_house)))
+
+(defun self-test()
+
+    (print '----------------------------sum------------------------------------------)
+    (print (sum tasks))
+    (print '------------------------predecessors-------------------------------------)
+    (print (predecessors 'roof tasks))
+    (print (predecessors 'excavate tasks))
+    (print '-------------------------get-time-----------------------------------------)
+    (print (get-time 'roof tasks ))
+    (print (get-time 'excavate tasks))
+    (print '-----------------------get-all-preds-------------------------------------)
+    (print (get-all-preds 'roof tasks ))
+    (print (get-all-preds 'excavate tasks))
+    (print '-------------------------precedes----------------------------------------)
+    (print (precedes 'excavate 'get_permit tasks)) ; nil since excavate cannot precede get_permit
+    (print (precedes 'get_permit 'excavate tasks)) ; true since get_permit precedes excavate
+    (print '------------------------start-day----------------------------------------)
+    (print (start-day 'roof tasks))
+    (print (start-day 'excavate tasks))
+    (print '--------------------------get-max----------------------------------------)
+    (print (get-max '(frame roof design_house) tasks))
+    (print (get-max '(excavate get_permit) tasks ))
+    (print '----------------------critical-path--------------------------------------)
+    (print (critical-path 'roof tasks ))
+    (print (critical-path 'excavate tasks))
+    (print '------------------------depends-on---------------------------------------)
+    (print (depends-on 'get_bids tasks ))
+    (print (depends-on 'install_windows_doors tasks ))
+    '--------------------------------------------------------------------------)
+
+;; Problem 1
+;;  sum - takes the list of tasks as an argument then returns the sum of all of
+;;  the days needed for the individual jobs.
+
+(defun sum ( taskList )
+  (cond ((null taskList) 0)
+        ((listp (car taskList))
+         (+ (get-Number-In-List (car taskList )) (sum (cdr taskList))))
+        (T 0)))
+
+(defun get-Number-In-List ( list1 )
+  (cond ((null list1) 0)
+        ((integerp (car list1)) (car list1))
+        (T (get-Number-In-List (cdr list1)))))
+
+; ----------------------------------------------
+
+;; Problem 2	
+;; predecessors - takes a specific job and the list of tasks then returns a list
+;; of the immediate predecessors for that job. 
+(defun predecessors (job taskList)
+  (cond ((null job) nil)
+        ((null taskList) nil)
+        ((listp (car taskList)) (get-job-predecessors job taskList))
+        (T (predecessors job (cdr taskList)))))
+
+(defun get-job-predecessors (job taskList)
+  (cond ((null taskList) nil)
+        ((cond ((equal job (caar taskList)) (cddr (car taskList)))
+               (T (predecessors job (cdr taskList)))))))
+
+; ----------------------------------------------
+
+;; Problem 3
+;; get-time - takes a job and the list of tasks then returns the time that job 
+;; takes.
+
+(defun get-Time (job taskList)
+  (cond ((null job) nil)
+        ((null taskList) nil)
+        ((listp (car taskList))
+         (cond ((equal job (caar taskList)) (cadr (car taskList)))
+               ( t (get-Time job (cdr taskList)))))
+        (t (get-Time job (cdr taskList)))))
+
+; ----------------------------------------------
+
+;; Problem 4
+;; get-all-preds - takes a job and the list of tasks then returns the time that 
+;; job takes.
+
+(defun get-all-preds ( job taskList)
+  (cond ((null job) nil)
+        (T  (remove-duplicates
+              (append (predecessors job taskList) (get-rest-preds (predecessors job taskList) taskList)) :test #'equal))))
+
+(defun get-rest-preds ( jobs taskList)
+  (cond ((null jobs) nil)
+        (T (append (predecessors (car jobs) taskList) (get-rest-preds (cdr jobs) taskList)))))
+
+; ----------------------------------------------
+
+;; Problem 5
+;; takes two specific jobs and the list of tasks then returns true if the first 
+;; job must precede the other and nil otherwise
+(defun precedes ( job1 job2 l)
+  (cond ((null l) nil)
+        ((check-job1-if-preds-job2-preds job1 (predecessors job2 l)) T)
+        (T nil)))
+
+(defun check-job1-if-preds-job2-preds (job1 jobs)
+  (cond
+    ((null jobs) nil)
+    ((equal job1 (car jobs)) T)
+    (T (check-job1-if-preds-job2-preds job1 (cdr jobs)))))
+
+; ----------------------------------------------
+
+;; Problem 6
+;; takes a specific job and the list of tasks then returns the day that this job
+;; can start
+
+(defun start-day ( job taskList)
+  (cond ((null job) 0)
+        ((null taskList) nil)
+        (T (get-Greatest-Pred (predecessors job taskList) taskList ))))
+
+(defun get-Greatest-Pred ( jobs taskList)
+  (cond ((null jobs) 0)
+        ((null taskList) nil)
+        (T (max (+ (get-time(car jobs) taskList)
+                   (get-Greatest-Pred (predecessors(car jobs) taskList) taskList) )
+                (get-Greatest-Pred (cdr jobs) taskList)))))
+
+; ----------------------------------------------
+
+;; Problem 7
+;; get_max - takes a list of job names and the list of tasks then returns a list
+;; with the time and the job that finishes at the greatest time.
+
+(defun get-Max ( jobs taskList)
+  (detrimine-slowest-time-for-job (get-Greatest-Pred jobs taskList) jobs taskList))
+
+(defun detrimine-slowest-time-for-job (num jobs taskList)
+  (cond ((null jobs) nil)
+          ((= num (+ (get-time(car jobs) taskList) (start-day (car jobs) taskList)))
+           (cons num (list (car jobs))))
+          (T (detrimine-slowest-time-for-job num (cdr jobs) taskList))))
+; ----------------------------------------------
+
+;; Problem 8
+;; critical_path - takes a job and the list of tasks then returns a list of the 
+;; jobs on the critical path to getting this job done in the least amount of 
+;; time
+
+(defun critical-path (job taskList)
+  (get-critical-path (start-day job taskList) (predecessors job taskList) taskList))
+
+(defun get-critical-path ( num jobs taskList)
+  (cond ((null jobs) nil)
+        ((= num (+ (get-time(car jobs) taskList) (start-day(car jobs) taskList)))
+         (cons (car jobs) (critical-path (car jobs) taskList)))
+        (t (get-critical-path num (cdr jobs) taskList))))
+
+; ----------------------------------------------
+
+;; Problem 9
+;; takes a job and the list of tasks then returns a list of the jobs that cannot 
+;; be started until this job has completed. This should return all future jobs, 
+;; not just the ones immediately affected.
+
+(defun depends-on (job taskList)
+  (find-dependency-for job taskList taskList))
+
+(defun find-dependency-for (job possibleDependsOnTasks cleanTaskList)
+  (cond ((null possibleDependsOnTasks) nil)
+        ((null job) nil)
+        ((select-job-list job (cddr (car possibleDependsOnTasks))) (remove-duplicates (append (list (caar possibleDependsOnTasks))
+                                                                 (find-dependency-for job (cdr possibleDependsOnTasks) cleanTaskList)
+                                                                 (depends-on (caar possibleDependsOnTasks) cleanTaskList)) :test #'equal))	
+        (T (find-dependency-for job (cdr possibleDependsOnTasks) cleanTaskList))))
+
+(defun select-job-list (job taskList)
+  (cond ((null taskList) nil)
+          ((equal job (car taskList)) T)
+          (T (select-job-list job (cdr taskList)))))
