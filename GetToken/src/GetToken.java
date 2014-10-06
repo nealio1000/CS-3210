@@ -24,7 +24,6 @@ public class GetToken {
     // Scan and parse the file into tokens
     public static void scanFile(HashMap<String, Integer> keywords) {
         String line;
-
         try {
             Scanner inFile = new Scanner(new FileReader("token.dat"));
             while (inFile.hasNext()) {
@@ -72,7 +71,7 @@ public class GetToken {
                                 token = "<";
                                 break;
                             }
-                        case '>': {
+                        case '>':
                             if (line.charAt(i + 1) == '=') {
                                 token = "<=";
                                 i++;
@@ -81,7 +80,7 @@ public class GetToken {
                                 token = "<";
                                 break;
                             }
-                        }
+
                         case '(':
                             token = "(";
                             break;
