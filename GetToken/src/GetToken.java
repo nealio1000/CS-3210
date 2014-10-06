@@ -1,6 +1,12 @@
-// Neal Friedman
-// CS 3210
-// GetToken()
+/*
+Neal Friedman
+CS 3210
+GetToken()
+This program reads in a code file and splits it into tokens.
+These tokens are categorized by certain types and each type
+is associated with a number. All tokens are printed out to
+the terminal in order along with their accompanying number.
+*/
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -20,7 +26,7 @@ public class GetToken {
         String line;
 
         try {
-            Scanner inFile = new Scanner(new FileReader("/home/neal/IdeaProjects/GetToken/token.dat"));
+            Scanner inFile = new Scanner(new FileReader("token.dat"));
             while (inFile.hasNext()) {
                 line = inFile.nextLine();
                 for (int i = 0; i < line.length(); i++) {
@@ -154,6 +160,7 @@ public class GetToken {
         keywords.put("END", 31);
     }
 
+    // Receives token and matches it to its token type
     public static void getToken(String token, HashMap<String, Integer> keywords) {
 
         if (keywords.containsKey(token)) {
