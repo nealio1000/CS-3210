@@ -2,50 +2,125 @@
 // CS 3210
 // GetToken()
 
-import java.io.*;
-import java.util.*;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.util.HashMap;
+import java.util.Scanner;
 
 
-public class GetToken
-{
-    public static void main(String[] args)
-    {
+public class GetToken {
+    public static void main(String[] args) {
         HashMap<String, Integer> keywords = new HashMap<String, Integer>();
         buildKeywordMap(keywords);
         scanFile(keywords);
     }
 
-    public static void scanFile(HashMap<String,Integer> keywords)
-    {
-        String delims = "((?=[-+*/;<>()]) | (?<=[\\s]))"; // ********** needs work here **********
-        try
-        {
+    // Scan and parse the file into tokens
+    public static void scanFile(HashMap<String, Integer> keywords) {
+        String line;
+
+        try {
             Scanner inFile = new Scanner(new FileReader("/home/neal/IdeaProjects/GetToken/token.dat"));
-            while (inFile.hasNext())
-            {
-                String line = inFile.nextLine();
-                String[] pString = line.split(delims);
-                List<String> parsedStringList = Arrays.asList(pString);
-                for (int i = 0; i < parsedStringList.size(); i++)
-                {
-                    if (parsedStringList.get(i).equals(":") && parsedStringList.get(i + 1).equals("="))
-                    {
-                        parsedStringList.set(i+1, ":=");
-                        i++;
+            while (inFile.hasNext()) {
+                line = inFile.nextLine();
+                for (int i = 0; i < line.length(); i++) {
+                    String token = "";
+                    char c = line.charAt(i);
+
+                    switch (c) {
+                        case ' ':
+                            token = "SPACE";
+                            break;
+                        case '+':
+                            token = "+";
+                            break;
+                        case '*':
+                            token = "*";
+                            break;
+                        case '/':
+                            token = "/";
+                            break;
+                        case '-':
+                            token = "-";
+                            break;
+                        case ':':
+                            if (line.charAt(i + 1) == '=') {
+                                token = ":=";
+                                i++;
+                            }
+                            break;
+                        case '=':
+                            token = "=";
+                            break;
+                        case '<':
+                            if (line.charAt(i + 1) == '=') {
+                                token = "<=";
+                                i++;
+                                break;
+                            }
+                            if (line.charAt(i + 1) == '>') {
+                                token = "<>";
+                                i++;
+                                break;
+                            } else {
+                                token = "<";
+                                break;
+                            }
+                        case '>': {
+                            if (line.charAt(i + 1) == '=') {
+                                token = "<=";
+                                i++;
+                                break;
+                            } else {
+                                token = "<";
+                                break;
+                            }
+                        }
+                        case '(':
+                            token = "(";
+                            break;
+                        case ')':
+                            token = ")";
+                            break;
+                        case '.':
+                            token = ".";
+                            break;
+                        case ';':
+                            token = ";";
+                            break;
+                        case '"':
+                            i++;
+                            c = line.charAt(i);
+                            while (c != '"') {
+                                token += c;
+                                i++;
+                                c = line.charAt(i);
+                            }
+                            i++;
+                            token = '"' + token + '"';
+                            break;
                     }
-                    getToken(parsedStringList.get(i), keywords);
+
+                    while (((c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || c == '.') && i < line.length()) {
+                        token += Character.toString(c);
+                        if (i == line.length() - 1)
+                            break;
+                        i++;
+                        c = line.charAt(i);
+                        if (c == ' ')
+                            i--;
+                    }
+                    getToken(token, keywords); //Match the token to the map and return the token
                 }
+                getToken("EOLN", keywords); //Reached end of line.
             }
-        }
-        catch (FileNotFoundException e)
-        {
+        } catch (FileNotFoundException e) {
             System.out.println("File not found.");
         }
-
     }
 
-    public static HashMap buildKeywordMap(HashMap<String,Integer> keywords)
-    {
+    //Hashmap of possible keywords and token names
+    public static void buildKeywordMap(HashMap<String, Integer> keywords) {
         keywords.put("IF", 1);
         keywords.put("THEN", 2);
         keywords.put("ELSE", 3);
@@ -58,6 +133,8 @@ public class GetToken
         keywords.put("OR", 10);
         keywords.put(".", 11);
         keywords.put(")", 12);
+        keywords.put("(", 13);
+        keywords.put("/", 14);
         keywords.put("*", 15);
         keywords.put("-", 16);
         keywords.put("+", 17);
@@ -75,32 +152,20 @@ public class GetToken
         keywords.put("numbers", 29);
         keywords.put("string", 30);
         keywords.put("END", 31);
-
-        return keywords;
     }
 
-    public static void getToken(String token, HashMap<String,Integer> keywords)
-    {
+    public static void getToken(String token, HashMap<String, Integer> keywords) {
 
-        System.out.println(token);
-
-//        if (keywords.containsKey(token))
-//        {
-//            System.out.println(token + " " + keywords.get(token));
-//        }
-//        else if(token.equals(""))
-//        {
-//            System.out.println("Space 26");
-//        }
-//        else if(token.matches("[A-Z]+"))
-//        {
-//            System.out.println("identifier: " + token + " 28");
-//        }
-//        else if(token.matches ("[0-9]"))
-//        {
-//            System.out.println("number: "  + token + " 29" );
-//        }
-//        else
-//            System.out.println("Unsolved Token");
+        if (keywords.containsKey(token)) {
+            System.out.println(token + " " + keywords.get(token));
+        } else if (token.matches("[A-Z]+")) {
+            System.out.println(token + " 28");
+        } else if (token.matches("\\d*\\.?\\d+")) {
+            System.out.println(token + " 29");
+        } else if (token.matches("\"(.*?)\"")) {
+            token = token.substring(1, token.length() - 1);
+            System.out.println(token + " 30");
+        } else
+            System.out.println("************ Unsolved Token ***************");
     }
 }
