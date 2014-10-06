@@ -2,15 +2,8 @@
 // CS 3210
 // GetToken()
 
-import java.util.Scanner;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.util.HashMap;
-
-
-//***** TO DO ******
-//Fix scanning of strings
-
+import java.io.*;
+import java.util.*;
 
 
 public class GetToken
@@ -22,120 +15,36 @@ public class GetToken
         scanFile(keywords);
     }
 
-
-    // Scan and parse the file into tokens
     public static void scanFile(HashMap<String,Integer> keywords)
     {
-        String line;
+        String delims = "((?=[-+*/;<>()]) | (?<=[\\s]))"; // ********** needs work here **********
         try
         {
             Scanner inFile = new Scanner(new FileReader("/home/neal/IdeaProjects/GetToken/token.dat"));
             while (inFile.hasNext())
             {
-                line = inFile.nextLine();
-                for(int i = 0; i < line.length(); i++)
+                String line = inFile.nextLine();
+                String[] pString = line.split(delims);
+                List<String> parsedStringList = Arrays.asList(pString);
+                for (int i = 0; i < parsedStringList.size(); i++)
                 {
-                    String token = "";
-                    char c = line.charAt(i);
-
-                    switch (c)
+                    if (parsedStringList.get(i).equals(":") && parsedStringList.get(i + 1).equals("="))
                     {
-                        case ' ':
-                            token = "SPACE";
-                            break;
-                        case '+':
-                            token = "+";
-                            break;
-                        case '*':
-                            token = "*";
-                            break;
-                        case '/':
-                            token = "/";
-                            break;
-                        case '-':
-                            token = "-";
-                            break;
-                        case ':':
-                        {
-                            if (line.charAt(i + 1) == '=')
-                            {
-                                token = ":=";
-                                i++;
-                            }
-                            break;
-                        }
-                        case '=':
-                            token = "=";
-                            break;
-                        case '<': {
-                            if (line.charAt(i + 1) == '=') {
-                                token = "<=";
-                                i++;
-                                break;
-                            }
-                            if (line.charAt(i + 1) == '>') {
-                                token = "<>";
-                                i++;
-                                break;
-                            } else {
-                                token = "<";
-                                break;
-                            }
-                        }
-                        case '>':
-                        {
-                            if (line.charAt(i + 1) == '=')
-                            {
-                                token = "<=";
-                                i++;
-                                break;
-                            }
-                            else
-                            {
-                                token = "<";
-                                break;
-                            }
-                        }
-                        case '(':
-                            token = "(";
-                            break;
-                        case ')':
-                            token = ")";
-                            break;
-                        case '.':
-                            token = ".";
-                            break;
-                        case ';':
-                            token = ";";
-                            break;
-                    }
-
-                    while(((c >= '0' && c <= '9') ||(c >= 'A' && c <= 'Z')) && i < line.length())
-                    {
-                        token += Character.toString(c);
-
-                        if(i == line.length()-1)
-                            break;
+                        parsedStringList.set(i+1, ":=");
                         i++;
-                        c = line.charAt(i);
-                        if(c == ' ')
-                        {
-                            i--;
-                        }
                     }
-                    getToken(token, keywords); //Match the token to the map and return the token
+                    getToken(parsedStringList.get(i), keywords);
                 }
-                getToken("EOLN", keywords); //Reached end of line.
             }
         }
         catch (FileNotFoundException e)
         {
             System.out.println("File not found.");
         }
+
     }
 
-    //Hashmap of possible keywords and token names
-    public static void buildKeywordMap(HashMap<String,Integer> keywords)
+    public static HashMap buildKeywordMap(HashMap<String,Integer> keywords)
     {
         keywords.put("IF", 1);
         keywords.put("THEN", 2);
@@ -149,7 +58,6 @@ public class GetToken
         keywords.put("OR", 10);
         keywords.put(".", 11);
         keywords.put(")", 12);
-        keywords.put("(", 13);
         keywords.put("*", 15);
         keywords.put("-", 16);
         keywords.put("+", 17);
@@ -168,24 +76,31 @@ public class GetToken
         keywords.put("string", 30);
         keywords.put("END", 31);
 
-
+        return keywords;
     }
 
     public static void getToken(String token, HashMap<String,Integer> keywords)
     {
-        if (keywords.containsKey(token))
-        {
-            System.out.println(token + " " + keywords.get(token));
-        }
-        else if(token.matches("[A-Z]+"))
-        {
-            System.out.println("identifier: " + token + " 28");
-        }
-        else if(token.matches ("[0-9]+"))
-        {
-            System.out.println("number: "  + token + " 29" );
-        }
-        else
-            System.out.println("Unsolved Token");
+
+        System.out.println(token);
+
+//        if (keywords.containsKey(token))
+//        {
+//            System.out.println(token + " " + keywords.get(token));
+//        }
+//        else if(token.equals(""))
+//        {
+//            System.out.println("Space 26");
+//        }
+//        else if(token.matches("[A-Z]+"))
+//        {
+//            System.out.println("identifier: " + token + " 28");
+//        }
+//        else if(token.matches ("[0-9]"))
+//        {
+//            System.out.println("number: "  + token + " 29" );
+//        }
+//        else
+//            System.out.println("Unsolved Token");
     }
 }
